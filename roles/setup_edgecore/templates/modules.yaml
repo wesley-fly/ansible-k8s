@@ -1,0 +1,3 @@
+modules:
+     enabled: [eventbus, servicebus, websocket, metaManager, edged, twin, dbTest]
+#    enabled: [eventbus, servicebus, websocket, metaManager, edged, twin, dbTest, edgemesh]

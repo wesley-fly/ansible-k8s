@@ -1,0 +1,26 @@
+192.168.51.171 hostname_var=k8s-m1
+192.168.51.168 hostname_var=k8s-n1
+192.168.51.158 hostname_var=k8s-n2
+
+[k8s_ssl]
+192.168.51.171
+[k8s_cluster]
+192.168.51.171
+192.168.51.168
+192.168.51.158
+[k8s_masters]
+192.168.51.171
+[k8s_nodes]
+192.168.51.171
+192.168.51.168
+192.168.51.158
+[board]
+192.168.51.175
+[nfs_server]
+192.168.51.171
+[nfs_client]
+192.168.51.168
+192.168.51.158
+[registry_server]
+[jenkins_node]
+[edgecloud]

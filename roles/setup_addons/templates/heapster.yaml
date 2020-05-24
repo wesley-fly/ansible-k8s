@@ -1,0 +1,211 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: monitoring-influxdb-grafana-v4
+  namespace: kube-system
+  labels:
+    k8s-app: influx
+    version: v4
+spec:
+  replicas: 1
+  selector:
+    k8s-app: influx
+    version: v4
+  template:
+    metadata:
+      labels:
+        k8s-app: influx
+        version: v4
+    spec:
+      containers:
+        - image: mirrorgooglecontainers/heapster-influxdb-amd64:v1.1.1
+          name: influxdb
+          resources:
+            # keep request = limit to keep this container in guaranteed class
+            limits:
+              cpu: 100m
+              memory: 500Mi
+            requests:
+              cpu: 100m
+              memory: 500Mi
+          ports:
+            - containerPort: 8086
+          volumeMounts:
+          - name: influxdb-persistent-storage
+            mountPath: /data
+      volumes:
+      - name: influxdb-persistent-storage
+        emptyDir: {}
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: monitoring-influxdb
+  namespace: kube-system
+  labels:
+    kubernetes.io/name: "InfluxDB"
+spec:
+  ports:
+    - name: api
+      port: 8086
+      targetPort: 8086
+  selector:
+    k8s-app: influx
+  clusterIP: {{heapster_influxip}}
+
+---
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: heapster
+  namespace: kube-system
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: heapster
+  namespace: kube-system
+  labels:
+    k8s-app: heapster
+    version: v1.4.3
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: heapster
+      version: v1.4.3
+  template:
+    metadata:
+      labels:
+        k8s-app: heapster
+        version: v1.4.3
+      annotations:
+        scheduler.alpha.kubernetes.io/critical-pod: ''
+    spec:
+      containers:
+        - image: mirrorgooglecontainers/heapster-amd64:v1.4.3
+          name: heapster
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8082
+              scheme: HTTP
+            initialDelaySeconds: 180
+            timeoutSeconds: 5
+          command:
+            - /heapster
+            - --source=kubernetes.summary_api:''
+            - --sink=influxdb:http://{{heapster_influxip}}:8086
+        - image: google_containers/heapster-amd64:v1.4.3
+          name: eventer
+          command:
+            - /eventer
+            - --source=kubernetes:''
+            - --sink=influxdb:http://{{heapster_influxip}}:8086
+        - image: mirrorgooglecontainers/addon-resizer:1.7
+          name: heapster-nanny
+          resources:
+            limits:
+              cpu: 50m
+              memory: 100Mi
+            requests:
+              cpu: 50m
+              memory: 100Mi
+          env:
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: MY_POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          command:
+            - /pod_nanny
+            - --cpu=80m
+            - --extra-cpu=0.5m
+            - --memory=140Mi
+            - --extra-memory=4Mi
+            - --threshold=5
+            - --deployment=heapster-v1.4.3
+            - --container=heapster
+            - --poll-period=300000
+            - --estimator=exponential
+        - image: mirrorgooglecontainers/addon-resizer:1.7
+          name: eventer-nanny
+          resources:
+            limits:
+              cpu: 50m
+              memory: 100Mi
+            requests:
+              cpu: 50m
+              memory: 100Mi
+          env:
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: MY_POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          command:
+            - /pod_nanny
+            - --cpu=100m
+            - --extra-cpu=0m
+            - --memory=190Mi
+            - --extra-memory=500Ki
+            - --threshold=5
+            - --deployment=heapster-v1.4.3
+            - --container=eventer
+            - --poll-period=300000
+            - --estimator=exponential
+      serviceAccountName: heapster
+      tolerations:
+        - key: "CriticalAddonsOnly"
+          operator: "Exists"
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: heapster-nodeport
+  namespace: kube-system
+  labels:
+    kubernetes.io/name: "Heapster"
+spec:
+  type: NodePort
+  ports:
+    - port: 80
+      targetPort: 8082
+      nodePort: {{heapster_nodeport}}
+  selector:
+    k8s-app: heapster
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: heapster
+  namespace: kube-system
+  labels:
+    kubernetes.io/name: "Heapster"
+spec:
+  ports:
+    - port: 80
+      targetPort: {{heapster_nodeport}}
+
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: heapster
+  namespace: kube-system
+subsets:
+- addresses:
+  - ip: {{heapster_nodeipaddr}}
+  ports:
+  - port: {{heapster_nodeport}}
+    protocol: TCP

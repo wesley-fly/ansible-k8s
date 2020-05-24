@@ -1,0 +1,11 @@
+---
+- name: copy addons script file
+  copy: src={{role_path}}/files/addons.sh dest=/root/addons.sh mode=755
+- name: copy cluster-admin yaml file
+  copy: src={{role_path}}/files/cluster-admin.yaml dest=/root/k8s/yaml/
+- name: run addons
+  shell: /root/addons.sh http://127.0.0.1:8080
+
+#- name: helm init command
+#  shell: helm init --service-account tiller
+#  ignore_errors: yes

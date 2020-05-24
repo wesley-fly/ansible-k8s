@@ -1,0 +1,42 @@
+---
+- name: copy yaml files to master {{kube_file_dir}}/yaml/
+  template: src={{role_path}}/templates/{{cert}}/{{item}} dest={{kube_file_dir}}/yaml/
+  with_items:
+    - "kube-proxy.yaml"
+    - "snap.yaml"
+    - "fluentd-es.yaml"
+    - "coredns.yaml"
+
+- name: copy config manifests files on master
+  template: src={{role_path}}/templates/{{cert}}/{{item}} dest=/etc/kubernetes/manifests mode=755
+  with_items:
+    - "apiserver.manifest"
+    - "controller-manager.manifest"
+    - "scheduler.manifest"
+
+- name: copy etcd to master
+  copy: src={{role_path}}/../../pre-images/etcd/{{item}} dest=/usr/local/bin mode=755
+  with_items:
+    - "etcd"
+    - "etcdctl"
+
+- name: copy etcd.service to master
+  template: src={{role_path}}/templates/{{cert}}/{{item}} dest=/etc/systemd/system mode=755
+  with_items:
+    - "etcd.service"
+
+- name: create  etcd working /var/lib/etcd
+  shell: mkdir -p /var/lib/etcd
+
+- name: systemctl daemon-reload
+  shell: systemctl daemon-reload
+- name: systemctl enable etcd
+  shell: systemctl enable etcd.service
+- name: systemctl start etcd.service
+  shell: systemctl start etcd.service
+
+- name: etcdctl create cni env
+  shell: etcdctl mk /kubernetes/network/config '{"Network":"{{kube_cluster_cidr}}","SubnetLen":24,"Backend":{"Type":"vxlan"}}'
+  ignore_errors: yes
+#- name: restart etcd
+#  service: name=etcd enabled=yes state=restarted

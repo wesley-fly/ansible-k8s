@@ -1,0 +1,5 @@
+---
+- hosts: k8s_ssl
+  roles:
+    - {role: setup_ssl}
+  tags: ca

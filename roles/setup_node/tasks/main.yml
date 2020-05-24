@@ -1,0 +1,75 @@
+---
+
+- name: create /etc/kubernetes/{manifests,certs,ssl}
+  file: path=/etc/kubernetes/{{item}} state=directory mode=755
+  with_items:
+    - "manifests"
+    - "certs"
+    - "ssl"
+
+- name: create {{kube_file_dir}}/images
+  shell: mkdir -p {{kube_file_dir}}/images
+- name: create {{kube_file_dir}}/yaml
+  shell: mkdir -p {{kube_file_dir}}/yaml
+- name: create {{kube_file_dir}}/yaml/kubeconfig
+  shell: mkdir -p {{kube_file_dir}}/yaml/kubeconfig
+- name: create /opt/cni/bin
+  shell: mkdir -p /opt/cni/bin
+- name: create {{kube_file_dir}}/k8sconfig
+  shell: mkdir -p {{kube_file_dir}}/k8sconfig
+
+- name: create /var/lib/kubelet
+  shell: mkdir -p /var/lib/kubelet
+
+- name: copy ssl key
+  copy: src=/tmp/ssl/{{item}} dest=/etc/kubernetes/ssl
+  with_items:
+    - "ca.pem"
+    - "{{ansible_default_ipv4.address}}-key.pem"
+    - "{{ansible_default_ipv4.address}}.pem"
+  tags: ca
+
+- name: copy pause images to images
+  copy: src={{role_path}}/../../pre-images/images/{{item}} dest={{kube_file_dir}}/images
+  with_items:
+    - "pause-amd64-3.0.tar"
+    - "kube-proxy-v1.9.9.tar"
+    - "snap-v23.tar"
+    - "fluentd-elasticsearch-v2.0.2.tar"
+    - "heapster-amd64-v1.4.3.tar"
+    - "coredns-1.0.1.tar"
+    - "tiller-2.11.0.tar"
+
+- name: copy images to images
+  copy: src={{role_path}}/../../pre-images/k8s/{{item}} dest=/usr/bin mode=755
+  with_items:
+    - "kubelet"
+
+#- name: copy files to /opt/cni/bin
+#  copy: src={{role_path}}/../../pre-images/cni/{{item}} dest=/opt/cni/bin mode=755
+#  with_items:
+#    - "loopback"
+#    - "host-local"
+#    - "bridge"
+#    - "flannel"
+#    - "portmap"
+
+- name: copy kube-proxy.yml
+  template: src={{role_path}}/templates/{{item}} dest={{kube_file_dir}}/yaml
+  with_items:
+    - "kube-proxy.yaml"
+
+- name: copy kubelet.service /usr/lib/systemd/system
+  template: src={{role_path}}/templates/{{cert}}/{{item}} dest=/usr/lib/systemd/system mode=755
+  with_items:
+    - "kubelet.service"
+
+- name: copy kubeletconfig.yaml and kubeproxyconfig.yaml to /etc/kubernetes
+  template: src={{role_path}}/templates/{{cert}}/{{item}} dest=/etc/kubernetes
+  with_items:
+    - "kubeletconfig.yaml"
+    - "kubeproxyconfig.yaml"
+- name: copy config file hostoverwrite
+  template: src={{role_path}}/templates/{{item}} dest={{kube_file_dir}}/k8sconfig
+  with_items:
+    - "hostoverwrite"

@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: kube-proxy
+  namespace: kube-system
+spec:
+  selector:
+    matchLabels:
+      k8s-app: kube-proxy
+  template:
+    metadata:
+      labels:
+        k8s-app: kube-proxy
+    spec:
+      hostNetwork: true
+      nodeSelector:
+        beta.kubernetes.io/arch: amd64
+      containers:
+      - name: kube-proxy
+        image: gcr.io/google_containers/kube-proxy:v1.9.9
+        command:
+        - /bin/sh
+        - -c
+        - kube-proxy --logtostderr=true --kubeconfig=/etc/kubernetes/kubeproxyconfig.yaml 1>>/var/log/kube-proxy.log 2>&1
+        volumeMounts:
+        - mountPath: /var/log
+          name: varlog
+        - mountPath: /run/xtables.lock
+          name: xtables-lock
+        - mountPath: /lib/modules
+          name: lib-modules
+          readOnly: true
+        - mountPath: /etc/kubernetes
+          name: etck8s
+        securityContext:
+          privileged: true
+      volumes:
+      - hostPath:
+          path: /var/log
+          type: ""
+        name: varlog
+      - hostPath:
+          path: /run/xtables.lock
+          type: FileOrCreate
+        name: xtables-lock
+      - hostPath:
+          path: /lib/modules
+          type: ""
+        name: lib-modules
+      - hostPath:
+          path: /etc/kubernetes
+          type: ""
+        name: etck8s

@@ -1,0 +1,28 @@
+---
+- name: create /tmp/ssl
+  file: path=/tmp/ssl state=directory mode=755
+  tags: ca
+
+- name: copy file
+  copy: src={{role_path}}/files/genttl.sh dest=/tmp/ssl mode=755
+  tags: ca
+
+- name: generate ssl key
+  command: /tmp/ssl/genttl.sh -m {{ssl_m_list}} -n {{ssl_n_list}} chdir=/tmp/ssl
+  tags: ca
+
+- name: find /tml/ssl/*
+  find:
+    paths: /tmp/ssl/
+    patterns: "*"
+    recurse: no
+  register: file_2_fetch
+  tags: ca
+
+- name: fetch /tml/ssl/* to local
+  fetch:
+    src: "{{ item.path }}"
+    dest: /tmp/ssl/
+    flat: yes
+  with_items: "{{ file_2_fetch.files }}"
+  tags: ca

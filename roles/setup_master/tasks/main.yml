@@ -1,0 +1,45 @@
+---
+
+- name: create /etc/kubernetes/{manifests,certs}
+  file: path=/etc/kubernetes/{{item}} state=directory mode=755
+  with_items:
+    - "manifests"
+    - "certs"
+    - "ssl"
+
+- name: create {{kube_file_dir}}/images
+  shell: mkdir -p {{kube_file_dir}}/images
+
+- name: create {{kube_file_dir}}/yaml
+  shell: mkdir -p {{kube_file_dir}}/yaml
+
+- name: create  /var/lib/kubelet
+  shell: mkdir -p /var/lib/kubelet
+
+- name: copy ssl key
+  copy: src=/tmp/ssl/{{item}} dest=/etc/kubernetes/ssl
+  with_items:
+    - "apiserver.pem"
+    - "apiserver-key.pem"
+    - "ca.pem"
+    - "ca-key.pem"
+  tags: ca
+
+- name: copy images to master images
+  copy: src={{role_path}}/../../pre-images/images/{{item}} dest={{kube_file_dir}}/images
+  with_items:
+    - "kube-apiserver-v1.9.9.tar"
+    - "kube-controller-manager-v1.9.9.tar"
+    - "kube-scheduler-v1.9.9.tar"
+    - "pause-amd64-3.0.tar"
+
+- name: copy kublet, kubectl to /usr/bin
+  copy: src={{role_path}}/../../pre-images/k8s/{{item}} dest=/usr/bin mode=755
+  with_items:
+    - "kubelet"
+    - "kubectl"
+
+- name: copy kubectl config to /root/.kube
+  copy: src={{role_path}}/file/{{item}} dest=/root/.kube/ mode=755
+  with_items:
+    - "config"

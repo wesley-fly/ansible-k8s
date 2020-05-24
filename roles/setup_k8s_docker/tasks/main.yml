@@ -1,0 +1,8 @@
+---
+- name: install docker-ce
+  yum: name=docker-ce state=latest
+
+- name: copy modified docker.service config file
+  copy: src={{role_path}}/files/docker.service dest=/lib/systemd/system/docker.service
+- name: copy daemon.json to  /etc/docker/
+  copy: src={{role_path}}/files/daemon.json dest=/etc/docker/

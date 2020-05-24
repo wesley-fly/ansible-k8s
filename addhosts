@@ -1,0 +1,8 @@
+[masters]
+[nodes]
+[etcd]
+[board]
+[nfs-server]
+[registry]
+[jenkins_node]
+[local]

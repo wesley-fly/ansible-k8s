@@ -1,0 +1,25 @@
+---
+- copy:
+    src: "{{role_path}}/files/docker-ce.repo"
+    dest: /etc/yum.repos.d/
+    owner: root
+    group: root
+
+- name: install docker-ce
+  yum: name=docker-ce state=latest
+
+- name:  sysctl -w vm.max_map_count=262144
+  shell: sysctl -w vm.max_map_count=262144
+- name: copy file to  /lib/sysctl.d/
+  copy: src={{role_path}}/templates/90-system.conf dest=/lib/sysctl.d/
+- name: copy docker.service to  /lib/systemd/system/
+  copy: src={{role_path}}/templates/docker.service dest=/lib/systemd/system/
+- name: copy daemon.json to  /etc/docker/
+  copy: src={{role_path}}/files/daemon.json dest=/etc/docker/
+
+- name: systemctl daemon-reload
+  shell: systemctl daemon-reload
+- name: systemctl enable docker
+  shell: systemctl enable docker.service
+- name: systemctl start docker.service
+  shell: systemctl start docker.service

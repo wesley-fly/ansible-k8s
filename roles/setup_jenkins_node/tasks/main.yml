@@ -1,0 +1,21 @@
+---
+- name: install git
+  yum: name=git state=latest
+
+- name: install unzip
+  yum: name=unzip state=latest
+
+- name: install ruby
+  yum: name=ruby state=latest
+
+- name: copy jdk
+  copy: src={{role_path}}/../../pre-images/jdk1.8/jdk1.8.0_221.tar.gz dest=/usr/local
+
+- name: copy travis_yml_script.rb to /usr/bin
+  copy: src={{role_path}}/files/travis_yml_script.rb dest=/usr/bin mode=755
+
+- name: uncrompress jdk
+  shell: tar xf /usr/local/jdk1.8.0_221.tar.gz -C /usr/local/
+
+- name: ln /usr/local/bin/java
+  file: src=/usr/local/jdk1.8.0_221/bin/java dest=/usr/local/bin/java state=link

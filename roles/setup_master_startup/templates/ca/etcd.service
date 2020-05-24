@@ -1,0 +1,26 @@
+[Unit]
+Description=Etcd Server
+After=network.target
+After=network-online.target
+Wants=network-online.target
+Documentation=https://github.com/coreos
+
+[Service]
+Type=notify
+WorkingDirectory=/var/lib/etcd/
+ExecStart=/usr/local/bin/etcd \
+  --name k8s-m1 \
+  --initial-advertise-peer-urls http://{{master_ip_address}}:2380 \
+  --listen-peer-urls http://{{master_ip_address}}:2380 \
+  --listen-client-urls http://{{master_ip_address}}:2379,http://127.0.0.1:2379 \
+  --advertise-client-urls http://{{master_ip_address}}:2379 \
+  --initial-cluster-token etcd-cluster-0 \
+  --initial-cluster k8s-m1=http://{{master_ip_address}}:2380 \
+  --initial-cluster-state new \
+  --data-dir=/var/lib/etcd
+Restart=on-failure
+RestartSec=5
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

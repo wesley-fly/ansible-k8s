@@ -1,0 +1,27 @@
+
+ansible_ssh_user: root
+ssl_m_list: 192.168.51.171
+ssl_n_list: 192.168.51.171,192.168.51.168,192.168.51.158
+cert: ca
+board_ip_address: 192.168.51.175
+master_ip_address: 192.168.51.171
+master_port: 8080
+registry_ip_address: 192.168.51.52
+registry_port: 5000
+kube_dns_ip: 10.254.0.254
+kube_dns_domain: cluster.local
+nsf_server_ip_address: 192.168.51.171
+docker_image_dir: /root/k8s/dockerimages
+kube_service_ip_range: 10.254.0.0/16
+kube_cluster_cidr: 10.253.0.0/16
+kube_file_dir: /root/k8s
+heapster_influxip: 10.254.0.100
+heapster_nodeipaddr: 192.168.51.45
+heapster_nodeport: 31888
+edgecloud_ip_address: 192.168.51.159
+
+jenkins_node_ip: 192.168.51.54
+jenkins_node_ssh_port: 22
+jenkins_node_username: root
+jenkins_node_password: xiaofanlee
+jenkins_node_volume: /data/jenkins_node

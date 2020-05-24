@@ -1,0 +1,10 @@
+---
+- name: copy heapster tiller tiller-service yaml files to master
+  template: src={{role_path}}/templates/{{item}} dest={{kube_file_dir}}/yaml/
+  with_items:
+    - "heapster.yaml"
+    - "tiller.yaml"
+    - "tiller-service.yaml"
+
+- name: copy helm file
+  copy: src={{role_path}}/../../pre-images/helm/helm dest=/usr/bin mode=755

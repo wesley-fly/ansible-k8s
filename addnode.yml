@@ -1,0 +1,17 @@
+---
+- hosts: all
+  roles:
+    - {role: set_fact.addnode}
+    - {role: repo}
+    - {role: common}
+- hosts: local
+  roles:
+    - nodessl
+  tags: ca
+- hosts: nodes
+  roles:
+    - {role: docker.node}
+    - {role: node}
+    - {role: istio.common}
+    - {role: istio.node}
+

@@ -1,0 +1,11 @@
+[Unit]
+Description=cloudcore.service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/etc/kubeedge/cloud/cloudcore/cloudcore
+
+[Install]
+WantedBy=multi-user.target

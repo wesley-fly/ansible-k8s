@@ -1,0 +1,4 @@
+---
+
+- name: modify hostname
+  shell: hostnamectl --static set-hostname {{ hostname_var }}

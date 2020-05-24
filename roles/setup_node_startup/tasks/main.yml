@@ -1,0 +1,20 @@
+---
+
+- name: copy k8s-loadimages
+  copy: src={{role_path}}/files/k8s-loadimages dest=/root/k8s-loadimages mode=755
+
+- name: start docker
+  service: name=docker enabled=yes state=started
+
+- name: docker loding k8s-loadimages
+  shell: /root/k8s-loadimages
+
+- name: systemctl daemon-reload
+  shell: systemctl daemon-reload
+- name: systemctl enable kubelet
+  shell: systemctl enable kubelet
+- name: systemctl start kubelet
+  shell: systemctl start kubelet
+
+- name: install socat
+  yum: name=socat state=latest

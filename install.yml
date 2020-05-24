@@ -1,0 +1,71 @@
+---
+#Setup k8s ssl keys
+- hosts: k8s_ssl
+  roles:
+    - {role: setup_ssl}
+  tags: ca
+
+#Setup common k8s linux env
+- hosts: k8s_cluster
+  roles:
+    - {role: setup_hostname}
+    - {role: setup_k8s_common}
+    - {role: setup_k8s_docker}
+
+#Setup master and nodes without startup
+- hosts: k8s_masters
+  roles:
+    - {role: setup_master}
+
+- hosts: k8s_nodes
+  roles:
+    - {role: setup_node}
+
+#Startup master and node
+- hosts: k8s_masters
+  roles:
+    - {role: setup_master_startup}
+
+- hosts: k8s_nodes
+  roles:
+    - {role: setup_flannel}
+    - {role: setup_node_startup}
+
+# Setup NFS for PV,PVC
+- hosts: nfs_server
+  roles:
+    - {role: setup_nfsserver}
+- hosts: nfs_client
+  roles:
+    - {role: setup_nfsclient}
+
+# Setup addons
+- hosts: k8s_nodes
+  roles:
+    - {role: setup_istio_common}
+    - {role: setup_istio_node}
+- hosts: k8s_masters
+  roles:
+    - {role: setup_addons}
+    - {role: setup_istio_common}
+    - {role: setup_istio_master}
+    - {role: setup_addons_start}
+
+- hosts: board
+  roles:
+    - {role: setup_common_docker_compose}
+    - {role: setup_common_docker}
+    - {role: setup_board_install}
+
+- hosts: registry_server
+  roles:
+    - {role: setup_common_docker}
+    - {role: setup_registry}
+
+- hosts: jenkins_node
+  roles:
+    - {role: setup_jenkins_node}
+
+- hosts: edgecloud
+  roles:
+    - {role: setup_edgecloud}

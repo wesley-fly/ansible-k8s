@@ -1,0 +1,15 @@
+---
+- hosts: board
+  roles:
+    - {role: setup_common_docker_compose}
+    - {role: setup_common_docker}
+    - {role: setup_board_install}
+
+- hosts: registry_server
+  roles:
+    - {role: setup_common_docker}
+    - {role: setup_registry}
+
+- hosts: jenkins_node
+  roles:
+    - {role: setup_jenkins_node}

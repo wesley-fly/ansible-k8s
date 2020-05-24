@@ -1,0 +1,20 @@
+[Unit]
+Description=Kubernetes Kubelet Server
+Documentation=https://github.com/GoogleCloudPlatform/kubernetes
+
+[Service]
+WorkingDirectory=/var/lib/kubelet
+EnvironmentFile=-/etc/kubernetes/config
+EnvironmentFile=-/etc/kubernetes/kubelet
+ExecStart=/usr/bin/kubelet \
+    --pod-manifest-path /etc/kubernetes/manifests \
+    --fail-swap-on=false \
+    --hostname-override={{ ansible_default_ipv4['address'] }} \
+    --allow-privileged=true \
+    --kubeconfig /etc/kubernetes/kubeletconfig.yaml  \
+    --cluster-dns={{ kube_dns_ip }} \
+    --cluster-domain={{ kube_dns_domain }}
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

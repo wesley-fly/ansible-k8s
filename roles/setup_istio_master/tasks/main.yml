@@ -1,0 +1,48 @@
+---
+
+- name: mkdir -p /tmp/istio
+  shell: mkdir -p /tmp/istio
+
+- name: mkdir -p /etc/kubernetes/certs
+  shell: mkdir -p /etc/kubernetes/certs
+  tags: istio-cert
+- name: copy make-certs file
+  copy: src={{role_path}}/../../pre-images/istio/make-certs.sh dest=/etc/kubernetes/certs mode=755
+  tags: istio-cert
+- name: execute make-cert.sh
+  shell: cd /etc/kubernetes/certs  && /etc/kubernetes/certs/make-certs.sh 10.254.0.1,{{master_ip_address}}
+  tags: istio-cert
+- name: copy config manifests files on master
+  template: src={{role_path}}/templates/{{item}} dest=/etc/kubernetes/manifests mode=755
+  with_items:
+    - "apiserver.manifest"
+    - "controller-manager.manifest"
+  tags: istio-cert
+- name: copy systemd files to master
+  copy: src={{role_path}}/templates/{{item}} dest=/usr/lib/systemd/system mode=755
+  with_items:
+    - "kubelet.service"
+  tags: istio-cert
+- name: systemctl daemon-reload
+  shell: systemctl daemon-reload
+  tags: istio-cert
+- name: systemctl start kubelet.service
+  shell: systemctl start kubelet.service
+  tags: istio-cert
+
+- name: copy istioctl file
+  copy: src={{role_path}}/../../pre-images/istio/istioctl dest=/usr/bin mode=755
+
+- name: copy istio-1.0.5-linux.tar.gz file
+  copy: src={{role_path}}/../../pre-images/istio/istio-1.0.5-linux.tar.gz dest=/tmp/istio mode=755
+
+- name: tar -zxvf istio-1.0.5-linux.tar.gz
+  shell: tar zxvf /tmp/istio/istio-1.0.5-linux.tar.gz -C /tmp/istio
+
+#- name: install istio
+#  shell: helm template /tmp/istio/istio-1.0.5/install/kubernetes/helm/istio --name istio --namespace istio-system --set sidecarInjectorWebhook.enabled=false >  /root/k8s/yaml/istio.yaml
+
+- name: copy istio.yaml to /root/k8s/yaml
+  template: src={{role_path}}/templates/{{item}} dest={{kube_file_dir}}/yaml/
+  with_items:
+    - "istio.yaml"

@@ -1,0 +1,20 @@
+---
+
+#- name: unzip board install package
+#  shell: tar zxvf {{board_package}} -C /root
+- name: create /etc/board/cert
+  file: path=/etc/board/cert state=directory mode=755
+  tags: ca
+
+- name: copy ssl key
+  copy: src=/tmp/ssl/{{item}} dest=/etc/board/cert
+  with_items:
+    - "ca.pem"
+    - "ca-key.pem"
+  tags: ca
+
+#- name: copy board.cfg file to /root/
+#  template: src={{role_path}}/templates/board.cfg dest=/root/
+
+#- name: install
+#  shell: /root/Deploy/install.sh

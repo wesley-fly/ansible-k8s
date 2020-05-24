@@ -1,0 +1,8 @@
+---
+- hosts: masters
+  roles:
+    - uninstallmater
+- hosts: nodes
+  roles:
+    - uninstallnode
+

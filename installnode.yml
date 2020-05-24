@@ -1,0 +1,10 @@
+---
+- hosts: all
+  roles:
+    - repo
+    - common
+- hosts: nodes
+  roles:
+    - docker.node
+    - node
+    - nfs-client

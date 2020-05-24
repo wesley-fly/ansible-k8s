@@ -1,0 +1,11 @@
+[Unit]
+Description=edgecore.service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/etc/kubeedge/edge/edgecore
+
+[Install]
+WantedBy=multi-user.target

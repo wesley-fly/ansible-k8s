@@ -1,0 +1,13 @@
+---
+- name: run registry
+  shell: docker run -d -p 5000:5000 --restart=always -v /data/registry:/tmp/registry -e REGISTRY_STORAGE_DELETE_ENABLED=true registry
+
+- name: copy registry.sh from files
+  copy: src={{role_path}}/files/{{item}} dest=/root mode=755
+  with_items:
+    - "registry.sh"
+
+#- name: push image to registry
+ # shell: /var/lib/sh/run.sh
+  #shell: {{shfile_dir}}{{tmp}}{{registry_sh}} {{registy_ip_address}}
+  #cmd: {{shfile_dir}}

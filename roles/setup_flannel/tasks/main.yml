@@ -1,0 +1,16 @@
+---
+- name: copy flanneld files
+  copy: src={{role_path}}/../../pre-images/flannel/{{item}} dest=/usr/local/bin  mode=755
+  with_items:
+    - "flanneld"
+    - "mk-docker-opts.sh"
+
+- name: copy images to master images
+  template: src={{role_path}}/templates/flanneld.service dest=/etc/systemd/system/
+
+- name: systemctl daemon-reload
+  shell: systemctl daemon-reload
+- name: systemctl enable flanneld
+  shell: systemctl enable flanneld.service
+- name: systemctl start flanneld.service
+  shell: systemctl start flanneld.service

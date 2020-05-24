@@ -1,0 +1,27 @@
+---
+
+- name: copy kubeedge-v1.1.0.tar to edgecloud
+  copy: src={{role_path}}/../../pre-images/kubeedge/{{item}} dest=/tmp/
+  with_items:
+    - "kubeedge-v1.1.0-arm64.tar.gz"
+
+- name: tar -zxvf kubeedge-v1.1.0-arm64.tar.gz -C /etc/
+  shell: tar zxvf /tmp/kubeedge-v1.1.0-arm64.tar.gz -C /etc/
+
+- name: copy controller.yaml config to /etc/kubeedge/edge/conf
+  template: src={{role_path}}/templates/{{item}} dest=/etc/kubeedge/edge/conf mode=755
+  with_items:
+    - "edge.yaml"
+    - "modules.yaml"
+
+- name: copy cloudcore.service config to /etc/systemd/system/
+  template: src={{role_path}}/templates/{{item}} dest=/etc/systemd/system/
+  with_items:
+    - "edgecore.service"
+
+- name: systemctl daemon-reload
+  shell: systemctl daemon-reload
+- name: systemctl enable edgecore
+  shell: systemctl enable edgecore.service
+- name: systemctl start edgecore.service
+  shell: systemctl start edgecore.service
